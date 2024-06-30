@@ -22,7 +22,7 @@ const searchRestaurant = async (req: Request, res: Response) => {
     const city = req.params.city;
 
     const searchQuery = (req.query.searchQuery as string) || "";
-    const selectedCuisines = (req.query.selectedCuisines as string) || "";
+    const selectedfoodCategory = (req.query.selectedfoodCategory as string) || "";
     const sortOption = (req.query.sortOption as string) || "lastUpdated";
     const page = parseInt(req.query.page as string) || 1;
 
@@ -41,19 +41,19 @@ const searchRestaurant = async (req: Request, res: Response) => {
       });
     }
 
-    if (selectedCuisines) {
-      const cuisinesArray = selectedCuisines
+    if (selectedfoodCategory) {
+      const foodCategoryArray = selectedfoodCategory
         .split(",")
-        .map((cuisine) => new RegExp(cuisine, "i"));
+        .map((foodCategory) => new RegExp(foodCategory, "i"));
 
-      query["cuisines"] = { $all: cuisinesArray };
+      query["foodCategory"] = { $all: foodCategoryArray };
     }
 
     if (searchQuery) {
       const searchRegex = new RegExp(searchQuery, "i");
       query["$or"] = [
         { restaurantName: searchRegex },
-        { cuisines: { $in: [searchRegex] } },
+        { foodCategory: { $in: [searchRegex] } },
       ];
     }
 
