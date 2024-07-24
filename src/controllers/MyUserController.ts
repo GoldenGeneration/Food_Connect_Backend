@@ -57,6 +57,23 @@ const updateCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
+const updateServicePoint = async ( req: Request, res: Response) => {
+  try {
+    const { servicePoints } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ messae: "User Not Found"});
+    }
+    user.servicePoints = servicePoints
+
+    await user.save();
+  }catch(error){
+    console.log(error);
+    res.status(500).json({ message: "Error Updating Service Points"})
+  }
+}
+
 export default {
   getCurrentUser,
   createCurrentUser,
