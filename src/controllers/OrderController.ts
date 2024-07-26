@@ -62,7 +62,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     await newOrder.save();
 
     // Update service points for the restaurant owner
-    await updateUserServicePoints(restaurant.user.toString(), newOrder); // Convert ObjectId to string
+    await updateUserServicePoints(restaurant.user.toString(), newOrder, restaurant.menuItems); // Pass menuItems as well
 
     // Assuming the frontend expects a URL, you could use a mock URL or skip this step
     const mockSuccessUrl = `${FRONTEND_URL}/order-status?success=true`;
@@ -95,14 +95,21 @@ const createLineItems = (
   return lineItems;
 };
 
-const updateUserServicePoints = async (userId: string, order: any) => {
+const updateUserServicePoints = async (userId: string, order: any, menuItems: MenuItemType[]) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error("User not found");
   }
 
-  // Assuming service points are calculated based on order items' quantities
-  const pointsToAdd = order.cartItems.reduce((acc: number, item: { quantity: string }) => acc + parseInt(item.quantity), 0);
+  // Calculate service points based on foodWeight
+  const pointsToAdd = order.cartItems.reduce((acc: number, cartItem: { menuItemId: string, quantity: string }) => {
+    const menuItem = menuItems.find(item => item._id.toString() === cartItem.menuItemId);
+    if (menuItem) {
+      return acc + (menuItem.foodWeight * parseInt(cartItem.quantity));
+    }
+    return acc;
+  }, 0);
+
   user.servicePoints = (user.servicePoints || 0) + pointsToAdd;
 
   await user.save();
